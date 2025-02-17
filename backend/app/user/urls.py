@@ -1,6 +1,12 @@
-from django.urls import path 
-from .views import CustomUserCreateView
+from django.urls import path ,include
+from .views import MosqueStuffViewSet
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+router.register("mosque-staff",MosqueStuffViewSet,basename="mosque-staff")
 
 urlpatterns = [
-    path("users/", CustomUserCreateView.as_view(), name="user-list"),
+    path("",include(router.urls)),
+    path("token/",TokenObtainPairView.as_view())
 ]

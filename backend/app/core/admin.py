@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import Needy, Mosque, CustomUser, RessourceType, Ressource
+from .models import Needy, Mosque, CustomUser, RessourceType, Ressource,Distribution
 from django.utils.translation import gettext_lazy as _
 
 
@@ -11,7 +11,7 @@ class UserAdmin(BaseUserAdmin):
     
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        (_('Personal Info'), {'fields': ('first_name', 'last_name')}),
+        (_('Personal Info'), {'fields': ('first_name', 'last_name','mosque','is_mosque_admin')}),
         (
             _('Permissions'),
             {
@@ -33,6 +33,8 @@ class UserAdmin(BaseUserAdmin):
                 'email',
                 'first_name',
                 'last_name',
+                'mosque',
+                'is_mosque_admin',
                 'password',
                 'is_active',
                 'is_staff',
@@ -47,3 +49,4 @@ admin.site.register(Needy)
 admin.site.register(Mosque)
 admin.site.register(RessourceType)
 admin.site.register(Ressource)
+admin.site.register(Distribution)

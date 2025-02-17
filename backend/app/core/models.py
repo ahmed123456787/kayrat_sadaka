@@ -12,6 +12,7 @@ class Mosque(models.Model):
     def __str__(self):
         return self.name
 
+
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -43,6 +44,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     mosque = models.ForeignKey(Mosque, on_delete=models.CASCADE,null=True,blank=True,related_name='responsibles')
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    is_mosque_admin = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
@@ -58,14 +60,21 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 
 class Needy(models.Model):
+
+    CHOICES = (
+        ('pending', 'pending'),
+        ('approved', 'approved'),
+        ('rejected', 'rejected'),
+    )
+
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
-    telephone = models.BigIntegerField()
+    phone_number = models.CharField(max_length=20)
     address = models.CharField(max_length=255)
-    documents = models.JSONField()
-    responsible = models.ForeignKey(CustomUser, on_delete=models.CASCADE,related_name='needy')
+    documents = models.JSONField(null=True,blank=True)
+    responsible = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='needy')
     birth_date = models.DateField()
-    status = models.CharField(max_length=255)
+    status = models.CharField(max_length=255,choices=CHOICES)
 
     class Meta:
         unique_together = ['first_name', 'last_name']
@@ -74,11 +83,15 @@ class Needy(models.Model):
 class RessourceType(models.Model):
     name = models.CharField(unique=True, max_length=255)
 
+    def __str__(self):
+        return self.name
 
 class Distribution(models.Model):
     name = models.CharField(max_length=255) # represent the prcoess (ex: aid el fitr, aid el adha,ramadan)
     responsible = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='distributions')
 
+    def __str__(self):
+        return self.name
 
 class Ressource(models.Model):
     quantity = models.BigIntegerField()

@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
-
+import django.utils.timezone as timezone
 
 class Mosque(models.Model):
     name = models.CharField(unique=True,max_length=255)
@@ -75,6 +75,7 @@ class Needy(models.Model):
     responsible = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='needy')
     birth_date = models.DateField()
     status = models.CharField(max_length=255,choices=CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ['first_name', 'last_name']
@@ -89,9 +90,11 @@ class RessourceType(models.Model):
 class Distribution(models.Model):
     name = models.CharField(max_length=255) # represent the prcoess (ex: aid el fitr, aid el adha,ramadan)
     responsible = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='distributions')
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
+
 
 class Ressource(models.Model):
     quantity = models.BigIntegerField()
@@ -101,5 +104,8 @@ class Ressource(models.Model):
 
 
 
-class Sms(models.Model):
-    contenu = models.CharField(max_length=255)
+class Notification (models.Model): 
+    """Define the notification fields"""
+    content = models.CharField(max_length=255)
+    user =  models.ForeignKey(settings.AUTH_USER_MODEL,related_name="notifications",on_delete=models.CASCADE) 
+    created_at = models.DateTimeField(auto_now_add=True)   

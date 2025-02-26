@@ -8,9 +8,6 @@ class RessourceTypeSerialzer (ModelSerializer):
         model = RessourceType
         fields = "__all__"
 
-
-    
-
 class DistributionSerializer(ModelSerializer):
     class Meta: 
         model = Distribution
@@ -35,3 +32,8 @@ class NeedySerializer (ModelSerializer):
 class UploadNeedyDocumentSerailizer(Serializer):
     documents = serializers.JSONField()
 
+
+class NotificationSerializer(ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = "__all__"

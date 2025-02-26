@@ -85,3 +85,15 @@ class UploadNeedyDocumentView(UpdateAPIView):
             serializer
 
         return super().partial_update(request, *args, **kwargs)   
+
+
+
+class NotificationViewSet(ModelViewSet):
+    serializer_class = NotificationSerializer
+    queryset = Notification
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+
+    def get_queryset(self):
+        """return the queryset"""

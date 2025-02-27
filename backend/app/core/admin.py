@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import Needy, Mosque, CustomUser, RessourceType, Ressource,Distribution
+from .models import Needy, Mosque, CustomUser, RessourceType, Ressource,Distribution,Notification
 from django.utils.translation import gettext_lazy as _
 
 
@@ -50,3 +50,4 @@ admin.site.register(Mosque)
 admin.site.register(RessourceType)
 admin.site.register(Ressource)
 admin.site.register(Distribution)
+admin.site.register(Notification)

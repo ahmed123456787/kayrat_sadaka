@@ -83,10 +83,13 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("localhost", 6379)],   # Change localhost to the ip in which you have redis server running on.
+            "hosts": [("redis_server", 6379)],   
         },
     },
 }
+# allow all hosts during development
+ALLOWED_HOSTS = ['*']
+
 
 
 # Database

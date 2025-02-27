@@ -57,15 +57,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
-
-
 class Needy(models.Model):
-
-    CHOICES = (
-        ('pending', 'pending'),
-        ('approved', 'approved'),
-        ('rejected', 'rejected'),
-    )
 
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
@@ -74,15 +66,18 @@ class Needy(models.Model):
     documents = models.JSONField(null=True,blank=True)
     responsible = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='needy')
     birth_date = models.DateField()
-    status = models.CharField(max_length=255,choices=CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ['first_name', 'last_name']
+    
+    def __str__(self):
+        return self.first_name +" " +  self.last_name
+
 
 
 class RessourceType(models.Model):
-    name = models.CharField(unique=True, max_length=255)
+    name = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
@@ -106,6 +101,10 @@ class Ressource(models.Model):
 
 class Notification (models.Model): 
     """Define the notification fields"""
-    content = models.CharField(max_length=255)
-    user =  models.ForeignKey(settings.AUTH_USER_MODEL,related_name="notifications",on_delete=models.CASCADE) 
+    message = models.CharField(max_length=255)
+    users =  models.ManyToManyField(settings.AUTH_USER_MODEL,related_name="notifications") 
     created_at = models.DateTimeField(auto_now_add=True)   
+    read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Notification message is  {self.message}"

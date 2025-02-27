@@ -6,10 +6,17 @@ services:
     volumes:
       - ./app:/app
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     command: >
       sh -c "python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
+        python manage.py runserver 0.0.0.0:8000"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
   db:
     image: postgres:16.6-alpine
     environment:
@@ -20,6 +27,18 @@ services:
       - .env
     volumes:
       - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      retries: 5
+      timeout: 3s
+
+  redis:
+    image: redis:alpine
+    container_name: redis_server
+    restart: always
+    ports:
+      - "6379:6379"
 
 volumes:
   db_data:

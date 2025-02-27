@@ -12,12 +12,13 @@ class DistributionSerializer(ModelSerializer):
     class Meta: 
         model = Distribution
         fields = ["id","name"]  
-
+        read_only_fields = ["id"]
 
 class NeedySerializer (ModelSerializer):
     class Meta:
         model = Needy
-        fields = ['id','first_name','last_name','phone_number','address','birth_date','status'] 
+        fields = ['id','first_name','last_name','phone_number','address','birth_date','created_at'] 
+        read_only_fields = ['id']
 
     def validate_phone_number(self, value):
         """Ensure the phone number starts with '0' and has exactly 10 digits."""
@@ -28,6 +29,8 @@ class NeedySerializer (ModelSerializer):
         if len(value) != 10:
             raise serializers.ValidationError("Phone number must be exactly 10 digits long.")
         return value 
+    
+
 
 class UploadNeedyDocumentSerailizer(Serializer):
     documents = serializers.JSONField()
@@ -36,4 +39,5 @@ class UploadNeedyDocumentSerailizer(Serializer):
 class NotificationSerializer(ModelSerializer):
     class Meta:
         model = Notification
-        fields = "__all__"
+        fields = ['id','content','user','read']
+        read_only_fields = ['id']

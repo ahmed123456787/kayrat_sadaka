@@ -6,7 +6,7 @@ from .serializers import *
 from rest_framework.response import Response
 from rest_framework.status import *
 from .models import *
-
+from rest_framework.views import APIView
 
 
 class RessourceTypeView (ModelViewSet):
@@ -88,12 +88,26 @@ class UploadNeedyDocumentView(UpdateAPIView):
 
 
 
-class NotificationViewSet(ModelViewSet):
-    serializer_class = NotificationSerializer
-    queryset = Notification
+class NumberOfResponsiblesView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
+    def get(self, request, *args, **kwargs):
+        mosque = request.user.mosque  # Assuming the user has a foreign key to Mosque
+        count = CustomUser.objects.filter(mosque=mosque).count()
+        return Response({'number_of_responsibles': count}, status=200)
+    
 
-    def get_queryset(self):
-        """return the queryset"""
+class NumberOfNeedyView(APIView):
+    """Return the number of needy that belong the same month"""
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request, *args, **kwargs):
+        mosque = request.user.mosque  # Assuming the user has a foreign key to Mosque
+        now = timezone.now()
+        start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        count = Needy.objects.filter(responsible__mosque=mosque, created_at__gte=start_of_month).count()
+        return Response({'number_of_needy': count}, status=200)
+
+        

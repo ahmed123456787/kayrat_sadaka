@@ -4,6 +4,8 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 import django.utils.timezone as timezone
 
+
+
 class Mosque(models.Model):
     name = models.CharField(unique=True,max_length=255)
     wilaya = models.CharField(max_length=255)
@@ -34,8 +36,6 @@ class CustomUserManager(BaseUserManager):
 
 
 
-
-
 class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(unique=True)
@@ -57,7 +57,15 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
+
 class Needy(models.Model):
+
+    CHOICES = (
+        ('single', 'Single'),
+        ('married', 'Married'),
+        ('divorced', 'Divorced'),
+        ('widow', 'Widow'),
+    )
 
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
@@ -66,7 +74,11 @@ class Needy(models.Model):
     documents = models.JSONField(null=True,blank=True)
     responsible = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='needy')
     birth_date = models.DateField()
+    number_ccp = models.CharField(max_length=20,default="")
+    marial_status = models.CharField(max_length=255,choices=CHOICES,default='single')
+    number_of_children = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+
 
     class Meta:
         unique_together = ['first_name', 'last_name']
@@ -82,10 +94,13 @@ class RessourceType(models.Model):
     def __str__(self):
         return self.name
 
+
 class Distribution(models.Model):
     name = models.CharField(max_length=255) # represent the prcoess (ex: aid el fitr, aid el adha,ramadan)
     responsible = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='distributions')
-    created_at = models.DateTimeField(auto_now_add=True)
+    start_time = models.DateTimeField(auto_now_add=True)
+    finishe_time = models.DateTimeField(null=True,blank=True)
+    purpose = models.CharField(max_length=255,default="")
 
     def __str__(self):
         return self.name
@@ -96,7 +111,8 @@ class Ressource(models.Model):
     ressource_type = models.ForeignKey(RessourceType, on_delete=models.CASCADE,related_name='ressources')   
     distribution = models.ForeignKey(Distribution, on_delete=models.CASCADE,related_name='ressources')
 
-
+    def __str__(self):
+        return f"{self.ressource_type.name}"
 
 
 class Notification (models.Model): 

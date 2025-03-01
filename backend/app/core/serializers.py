@@ -8,11 +8,20 @@ class RessourceTypeSerialzer (ModelSerializer):
         model = RessourceType
         fields = "__all__"
 
+class RessourceSerializer(ModelSerializer):
+    """Serializer of the ressource"""
+    class Meta:
+        model = Ressource
+        fields = "__all__"
+        read_only_fields = ["id"]
+
+
 class DistributionSerializer(ModelSerializer):
     class Meta: 
         model = Distribution
         fields = ["id","name"]  
         read_only_fields = ["id"]
+
 
 class NeedySerializer (ModelSerializer):
     class Meta:
@@ -36,8 +45,17 @@ class UploadNeedyDocumentSerailizer(Serializer):
     documents = serializers.JSONField()
 
 
+
 class NotificationSerializer(ModelSerializer):
     class Meta:
         model = Notification
         fields = ['id','content','user','read']
+        read_only_fields = ['id']
+
+
+
+class NumberOfResponsiblesView(ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id','first_name','last_name','email']
         read_only_fields = ['id']

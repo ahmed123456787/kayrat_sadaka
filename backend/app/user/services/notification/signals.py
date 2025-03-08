@@ -15,7 +15,6 @@ def send_notification_on_activation(sender, instance, created, **kwargs):
 
     print("hello boy")
     try:
-        print("define pass")
         print("active",instance.is_active) 
         if  instance.is_active:  
             mosque = instance.mosque
@@ -33,7 +32,7 @@ def send_notification_on_activation(sender, instance, created, **kwargs):
             # Broadcast the notification to the WebSocket group
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
-                f'mosque_{mosque.id}',
+                f'mosque_{mosque}',
                 {
                     'type': 'send_notification',
                     'message': message

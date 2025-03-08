@@ -12,4 +12,5 @@ urlpatterns = [
     path('number-of-responsibles/', NumberOfResponsiblesView.as_view(), name='number_of_responsibles'),
     path('number-of-needy/', NumberOfNeedyView.as_view(), name='number_of_needy'),
     path('', include(router.urls)),
+
 ]

@@ -57,6 +57,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
+class Document(models.Model):
+    file = models.FileField(upload_to='uploads/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
 
 class Needy(models.Model):
 
@@ -71,7 +75,7 @@ class Needy(models.Model):
     last_name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=20)
     address = models.CharField(max_length=255)
-    documents = models.JSONField(null=True,blank=True)
+    documents = models.ManyToManyField(Document, blank=True, related_name='needies')
     responsible = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='needy')
     birth_date = models.DateField()
     number_ccp = models.CharField(max_length=20,default="")
@@ -99,7 +103,7 @@ class Distribution(models.Model):
     name = models.CharField(max_length=255) # represent the prcoess (ex: aid el fitr, aid el adha,ramadan)
     responsible = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='distributions')
     start_time = models.DateTimeField(auto_now_add=True)
-    finishe_time = models.DateTimeField(null=True,blank=True)
+    finish_time = models.DateTimeField(null=True,blank=True)
     purpose = models.CharField(max_length=255,default="")
 
     def __str__(self):
@@ -112,7 +116,7 @@ class Ressource(models.Model):
     distribution = models.ForeignKey(Distribution, on_delete=models.CASCADE,related_name='ressources')
 
     def __str__(self):
-        return f"{self.ressource_type.name}"
+        return f"{self.ressource_type.name}{self.quantity}"
 
 
 class Notification (models.Model): 

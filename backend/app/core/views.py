@@ -110,4 +110,15 @@ class NumberOfNeedyView(APIView):
         count = Needy.objects.filter(responsible__mosque=mosque, created_at__gte=start_of_month).count()
         return Response({'number_of_needy': count}, status=200)
 
-        
+
+
+# class RessourceViewSet(ModelViewSet):
+#     serializer_class = RessourceSerializer
+#     queryset = Ressource.objects.all()
+#     permission_classes = [IsAuthenticated]
+#     authentication_classes = [JWTAuthentication]
+
+
+#     def get_queryset(self):
+#         """Return the ressources of the user's mosque"""
+#         return Ressource.objects.filter(distribution__responsible__mosque=self.request.user.mosque)

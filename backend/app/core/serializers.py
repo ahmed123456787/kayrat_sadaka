@@ -48,23 +48,6 @@ class DistributionSerializer(ModelSerializer):
         return self.to_representation(distribution)
 
 
-class DocumentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Document
-        fields = ['id', 'file', 'uploaded_at']
-        read_only_fields = ['id', 'uploaded_at']
-
-    def create(self, validated_data):
-        documents_data = validated_data.pop('documents', [])
-        needy = Needy.objects.create(**validated_data)
-
-        # Save documents and link to Needy
-        for document_data in documents_data:
-            document = Document.objects.create(**document_data)
-            needy.documents.add(document)
-
-        return needy
-    
 
 class NeedySerializer (ModelSerializer):
     class Meta:
@@ -83,14 +66,42 @@ class NeedySerializer (ModelSerializer):
         return value 
     
 
+from rest_framework import serializers
+from .models import Needy, Document
 
-class UploadNeedyDocumentSerailizer(Serializer):
-    documents = DocumentSerializer(many=True)
+class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Document
-        fields = ['documents','needy']
+        model = Document 
+        fields = ['id', 'file', 'uploaded_at']
+        read_only_fields = ['id', 'uploaded_at']
+
+class UploadNeedyDocumentSerializer(serializers.ModelSerializer):
+    documents = DocumentSerializer(many=True, required=False)
+
+    class Meta:
+        model = Needy
+        fields = ['id', 'documents']
         read_only_fields = ['id']
 
+    def update(self, instance, validated_data):
+        print("Inside custom update method")
+        
+        # Extract documents data if provided
+        documents_data = validated_data.pop('documents', [])
+        print("Documents data:", documents_data)
+
+        # Update the Needy instance
+        instance = super().update(instance, validated_data)
+        print("Needy instance updated:", instance)
+
+        # Save new documents if provided
+        for document_data in documents_data:
+            print("Processing document data:", document_data)
+            document = Document.objects.create(**document_data)
+            instance.documents.add(document)
+
+        instance.save()
+        return instance
 
 
 class NotificationSerializer(ModelSerializer):

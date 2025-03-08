@@ -61,7 +61,9 @@ class Document(models.Model):
     file = models.FileField(upload_to='uploads/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
-
+    def __str__(self):
+        return self.file.name
+    
 class Needy(models.Model):
 
     CHOICES = (
@@ -102,7 +104,7 @@ class RessourceType(models.Model):
 class Distribution(models.Model):
     name = models.CharField(max_length=255) # represent the prcoess (ex: aid el fitr, aid el adha,ramadan)
     responsible = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='distributions')
-    start_time = models.DateTimeField(auto_now_add=True)
+    start_time = models.DateTimeField(default=timezone.now,null=False,blank=False)
     finish_time = models.DateTimeField(null=True,blank=True)
     purpose = models.CharField(max_length=255,default="")
 

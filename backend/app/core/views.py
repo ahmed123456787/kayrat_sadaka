@@ -7,6 +7,12 @@ from rest_framework.response import Response
 from rest_framework.status import *
 from .models import *
 from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.types import OPENAPI_TYPE_MAPPING
+from django.utils import timezone
+from drf_spectacular.types import OpenApiTypes
+from rest_framework.exceptions import NotFound as Http404
+from rest_framework import status
 
 
 class RessourceTypeView (ModelViewSet):
@@ -17,7 +23,19 @@ class RessourceTypeView (ModelViewSet):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     
-        
+@extend_schema(
+    parameters=[
+        OpenApiParameter(
+            name='start_date',
+            description='Filter distributions created after this date (format: YYYY-MM-DD)',
+            required=False,
+            type=str,
+            location=OpenApiParameter.QUERY
+        )
+    ]
+)       
+
+
 class DistributionView (ModelViewSet):
 
     queryset = Distribution.objects.all()
@@ -29,7 +47,14 @@ class DistributionView (ModelViewSet):
     def get_queryset(self):
         """return the distributions of the user's mosque"""
         distributions = Distribution.objects.filter(responsible__mosque=self.request.user.mosque)
+
+        start_date = self.request.query_params.get('start_date')
+        if start_date:
+            #filter the distributions that are created after the start_date
+            distributions = distributions.filter(start_time__gte=start_date)
+
         return distributions
+
 
     def create(self, request, *args, **kwargs):
 
@@ -42,8 +67,8 @@ class DistributionView (ModelViewSet):
             return Response(serializer.validated_data,status=HTTP_201_CREATED)
         
         else :
-            return Response(serializer.errors,status=HTTP_400_BAD_REQUEST)
-        
+            return Response(serializer.errors,status=HTTP_400_BAD_REQUEST)      
+
 
 
 class NeedyView(ListCreateAPIView):
@@ -71,20 +96,44 @@ class NeedyView(ListCreateAPIView):
 
 
 
-class UploadNeedyDocumentView(UpdateAPIView):
-    serializer_class = UploadNeedyDocumentSerailizer
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.generics import UpdateAPIView
+from django.http import Http404
 
+class UploadNeedyDocumentView(UpdateAPIView):
+    serializer_class = UploadNeedyDocumentSerializer
 
     def get_queryset(self):
-        """Filter the needys that belongs the responsible mosque """
+        """Filter the needys that belong to the responsible user"""
+        return Needy.objects.filter(responsible=self.request.user)
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        pk = self.kwargs.get("pk")
+        try:
+            return queryset.get(id=pk)
+        except Needy.DoesNotExist:
+            raise Http404("Needy not found")
+
     def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        print("Instance before update:", instance)
+        print("Request data:", request.data)
+        print("Request files:", request.FILES)
 
-        serializer = UploadNeedyDocumentSerailizer(data=request.data)
+        # Combine request.data and request.FILES for file uploads
+        data = request.data.copy()
+        data.update(request.FILES)
 
+        serializer = self.get_serializer(instance, data=data, partial=True)
         if serializer.is_valid():
-            serializer
-
-        return super().partial_update(request, *args, **kwargs)   
+            serializer.save()
+            print("Instance after update:", instance)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            print("Errors:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -97,6 +146,7 @@ class NumberOfResponsiblesView(APIView):
         count = CustomUser.objects.filter(mosque=mosque).count()
         return Response({'number_of_responsibles': count}, status=200)
     
+
 
 class NumberOfNeedyView(APIView):
     """Return the number of needy that belong the same month"""

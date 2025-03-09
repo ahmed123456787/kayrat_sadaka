@@ -162,13 +162,13 @@ class NumberOfNeedyView(APIView):
 
 
 
-# class RessourceViewSet(ModelViewSet):
-#     serializer_class = RessourceSerializer
-#     queryset = Ressource.objects.all()
-#     permission_classes = [IsAuthenticated]
-#     authentication_classes = [JWTAuthentication]
+class RessourceViewSet(ModelViewSet):
+    serializer_class = RessourceSerializer
+    queryset = Ressource.objects.all()
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
 
 
-#     def get_queryset(self):
-#         """Return the ressources of the user's mosque"""
-#         return Ressource.objects.filter(distribution__responsible__mosque=self.request.user.mosque)
+    def get_queryset(self):
+        """Return the ressources of the user's mosque"""
+        return Ressource.objects.filter(distribution__responsible__mosque=self.request.user.mosque)

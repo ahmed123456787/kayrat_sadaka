@@ -46,7 +46,7 @@ class MosqueNotificationsConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         # Handle incoming messages (if needed)
-        print(f"📩 Received data: {text_data}")
+        print(f"Received data: {text_data}")
 
     async def send_notification(self, event):
         # Send notification to the WebSocket

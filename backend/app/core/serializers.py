@@ -2,6 +2,7 @@ from rest_framework.serializers import ModelSerializer, Serializer
 from rest_framework import  serializers
 from .models import *
 
+
 class RessourceTypeSerialzer (ModelSerializer):
     """Serializer of the ressource type"""
     class Meta:
@@ -16,13 +17,23 @@ class RessourceSerializer(ModelSerializer):
         exclude = ['distribution']
         read_only_fields = ["id"]
 
+    def update(self, instance, validated_data):
+        """Update the ressource instance with the validated data."""
+        ressource_type_data = validated_data.pop('ressource_type')
+        ressource_type, created = RessourceType.objects.get_or_create(**ressource_type_data)
+
+        instance.ressource_type = ressource_type
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
 class DistributionSerializer(ModelSerializer):
     ressources = RessourceSerializer(many=True)
 
     class Meta:
         model = Distribution
-        fields = ["id", "name", "start_time", "finish_time", "purpose", "ressources"]
+        fields = ["id", "name", "start_time", "finish_time", "ressources"]
         read_only_fields = ["id"]
 
     def create(self, validated_data):
@@ -66,8 +77,6 @@ class NeedySerializer (ModelSerializer):
         return value 
     
 
-from rest_framework import serializers
-from .models import Needy, Document
 
 class DocumentSerializer(serializers.ModelSerializer):
     class Meta:

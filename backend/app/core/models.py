@@ -5,7 +5,6 @@ from django.utils.translation import gettext_lazy as _
 import django.utils.timezone as timezone
 
 
-
 class Mosque(models.Model):
     name = models.CharField(unique=True,max_length=255)
     wilaya = models.CharField(max_length=255)
@@ -13,7 +12,6 @@ class Mosque(models.Model):
     
     def __str__(self):
         return self.name
-
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -64,13 +62,30 @@ class Document(models.Model):
     def __str__(self):
         return self.file.name
     
+
+
 class Needy(models.Model):
 
     CHOICES = (
-        ('single', 'Single'),
-        ('married', 'Married'),
-        ('divorced', 'Divorced'),
-        ('widow', 'Widow'),
+        ('single', 'أعزب'),
+        ('married', 'متزوج'),
+        ('divorced', 'مطلق'),
+        ('widow', 'أرمل'),
+    )
+
+    SOCIAL_STATUS_CHOICES = (
+        ('unemployed', 'عاطل عن العمل'),
+        ('student', 'طالب'),
+        ('retired', 'متقاعد'),
+        ('disabled', 'معاق'),
+        ('employed', 'موظف'),
+        ('self-employed', 'عامل حر'),
+        ('other', 'أخرى'),
+    )
+
+    SEX_CHOICES = (
+        ('male', 'ذكر'),
+        ('female', 'أنثى'),
     )
 
     first_name = models.CharField(max_length=255)
@@ -84,6 +99,9 @@ class Needy(models.Model):
     marial_status = models.CharField(max_length=255,choices=CHOICES,default='single')
     number_of_children = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+    sex = models.CharField(max_length=10, choices=SEX_CHOICES)
+    social_status = models.CharField(max_length=255, choices=SOCIAL_STATUS_CHOICES, default='unemployed')
+    distributions = models.ManyToManyField('Distribution', related_name='enrolled_needy')
 
 
     class Meta:
@@ -95,19 +113,32 @@ class Needy(models.Model):
 
 
 class RessourceType(models.Model):
+    UNIT_CHOICES = (
+        ('kg', 'كيلوغرام'),
+        ('liter', 'لتر'),
+        ('piece', 'قطعة'),
+        ('box', 'صندوق'),
+        ('DZD', 'دينار جزائري'),
+    )
     name = models.CharField(max_length=255)
-
+    unit = models.CharField(max_length=50, choices=UNIT_CHOICES)  
     def __str__(self):
         return self.name
 
 
 class Distribution(models.Model):
+    PERCENTAGE_CHOICES = (
+        (0,0),
+        (33,33),
+        (66,66),
+        (100,100),
+    )
     name = models.CharField(max_length=255) # represent the prcoess (ex: aid el fitr, aid el adha,ramadan)
     responsible = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='distributions')
     start_time = models.DateTimeField(default=timezone.now,null=False,blank=False)
     finish_time = models.DateTimeField(null=True,blank=True)
-    purpose = models.CharField(max_length=255,default="")
-
+    percentage = models.SmallIntegerField(default=0, null=False, blank=False,choices=PERCENTAGE_CHOICES)  # percentage of the distribution that is done
+    
     def __str__(self):
         return self.name
 

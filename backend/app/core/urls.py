@@ -12,6 +12,7 @@ urlpatterns = [
     path('needy/', NeedyView.as_view(), name='needy'),
     path('number-of-responsibles/', NumberOfResponsiblesView.as_view(), name='number_of_responsibles'),
     path('number-of-needy/', NumberOfNeedyView.as_view(), name='number_of_needy'),
+    path('distribution-history/', DistributionHistoryAPIView.as_view(), name='distribution-history'),
     path('', include(router.urls)),
 
 ]

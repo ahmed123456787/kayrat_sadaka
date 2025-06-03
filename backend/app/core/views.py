@@ -10,9 +10,11 @@ from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OPENAPI_TYPE_MAPPING
 from django.utils import timezone
-from drf_spectacular.types import OpenApiTypes
 from rest_framework.exceptions import NotFound as Http404
 from rest_framework import status
+from django.db.models import Count, Sum
+from django.http import JsonResponse
+from django.utils.timezone import now
 
 
 class RessourceTypeView (ModelViewSet):
@@ -96,10 +98,6 @@ class NeedyView(ListCreateAPIView):
 
 
 
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.generics import UpdateAPIView
-from django.http import Http404
 
 class UploadNeedyDocumentView(UpdateAPIView):
     serializer_class = UploadNeedyDocumentSerializer
@@ -172,3 +170,32 @@ class RessourceViewSet(ModelViewSet):
     def get_queryset(self):
         """Return the ressources of the user's mosque"""
         return Ressource.objects.filter(distribution__responsible__mosque=self.request.user.mosque)
+
+
+class DistributionHistoryAPIView(APIView):
+    def get(self, request):
+        current_year = now().year
+        data = []
+
+        for month in range(1, 13):
+            monthly_distributions = Distribution.objects.filter(
+                start_time__year=current_year, start_time__month=month
+            )
+
+            beneficiaries_count = Needy.objects.filter(
+                distributions__in=monthly_distributions
+            ).distinct().count()
+
+            resources_data = (
+                Ressource.objects.filter(distribution__in=monthly_distributions)
+                .values('ressource_type__name')
+                .annotate(total_quantity=Sum('quantity'))
+            )
+
+            data.append({
+                'month': month,
+                'beneficiaries_count': beneficiaries_count,
+                'resources': list(resources_data),
+            })
+
+        return JsonResponse(data, safe=False)

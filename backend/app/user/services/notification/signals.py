@@ -2,7 +2,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from core.models import Notification, CustomUser as User, Distribution
+from core.models import Notification, CustomUser as User, Ressource
 
 
 @receiver(post_save, sender=User)
@@ -39,28 +39,30 @@ def send_notification_on_activation(sender, instance, created, **kwargs):
             )
 
     except User.DoesNotExist:
-        pass  # Ignore if user doesn't exist (should not happen)
+        pass 
 
 
-@receiver(post_save, sender=Distribution)
+@receiver(post_save, sender=Ressource)
 def send_notification_ressource_empty(sender, instance, created, **kwargs):
-    mosque = instance.responsible.mosque
-    for ressource in instance.ressources.all():
-        if ressource.quantity == 0:
-            # Get all users belonging to the mosque
-            users = User.objects.filter(mosque=mosque)
-            message = f"The stock of {ressource.ressource_type.name} is empty"
-            notification = Notification.objects.create(message=message)
 
-            for user in users:
-                notification.users.add(user)
+    mosque = instance.distribution.responsible.mosque
 
-            # Broadcast the notification to the WebSocket group
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                f'mosque_{mosque}',
-                {
-                    'type': 'send_notification',
-                    'message': message
-                }
-            )
+    if instance.quantity == 0:
+        users = User.objects.filter(mosque=mosque)
+        message = f"The stock of {instance.ressource_type.name} is empty"
+        notification = Notification.objects.create(message=message)
+
+        for user in users: 
+            notification.users.add(user)
+
+        # Broadcast the notification to the WebSocket group
+        channel_layer = get_channel_layer()
+        print(f"Channel layer: {channel_layer}")
+        async_to_sync(channel_layer.group_send)(
+            f'mosque_{mosque.id}',
+            {
+                'type': 'send_notification',
+                'message': message
+            }
+        )
+        print("Notification sent to WebSocket group")

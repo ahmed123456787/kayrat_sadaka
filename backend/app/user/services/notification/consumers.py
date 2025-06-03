@@ -3,6 +3,7 @@ import json
 from urllib.parse import parse_qs
 from .middlware import get_user_from_token
 
+
 class MosqueNotificationsConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         print("Connection request received.")
@@ -13,7 +14,7 @@ class MosqueNotificationsConsumer(AsyncWebsocketConsumer):
             print("No valid token provided.")
             await self.close(code=4001)
             return
-
+        
         # Authenticate user
         user = await get_user_from_token(token)
         if not user or user.is_anonymous:

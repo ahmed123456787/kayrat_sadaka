@@ -155,7 +155,7 @@ class NumberOfNeedyView(APIView):
         mosque = request.user.mosque  # Assuming the user has a foreign key to Mosque
         now = timezone.now()
         start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        count = Needy.objects.filter(responsible__mosque=mosque, created_at__gte=start_of_month).count()
+        count = Needy.objects.filter(responsible__mosque=mosque).count()
         return Response({'number_of_needy': count}, status=200)
 
 
@@ -170,6 +170,7 @@ class RessourceViewSet(ModelViewSet):
     def get_queryset(self):
         """Return the ressources of the user's mosque"""
         return Ressource.objects.filter(distribution__responsible__mosque=self.request.user.mosque)
+
 
 
 class DistributionHistoryAPIView(APIView):

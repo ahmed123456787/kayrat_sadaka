@@ -101,7 +101,7 @@ class Needy(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     sex = models.CharField(max_length=10, choices=SEX_CHOICES)
     social_status = models.CharField(max_length=255, choices=SOCIAL_STATUS_CHOICES, default='unemployed')
-    distributions = models.ManyToManyField('Distribution', related_name='enrolled_needy')
+    distributions = models.ManyToManyField('Distribution', related_name='enrolled_needy', blank=True,null=True)     
 
 
     class Meta:

@@ -63,7 +63,7 @@ class DistributionSerializer(ModelSerializer):
 class NeedySerializer (ModelSerializer):
     class Meta:
         model = Needy
-        fields = '__all__'
+        exclude = ['responsible']
         read_only_fields = ['id']
 
     def validate_phone_number(self, value):

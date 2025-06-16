@@ -12,7 +12,8 @@ from django.core.exceptions import ObjectDoesNotExist
 
 
 from .services.email import send_password_reset_email
-from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class MosqueStuffViewSet(GenericViewSet,CreateModelMixin,
@@ -125,3 +126,38 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         if username:
             return User.objects.get(**{username_field: username})
         return None
+
+class CustomTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        # Get the refresh token from the request
+        refresh_token = request.data.get('refresh')
+        
+        try:
+            # Create a RefreshToken instance
+            token = RefreshToken(refresh_token)
+            user_id = token.payload.get('user_id')
+            
+            # Create a new refresh token
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            user = User.objects.get(id=user_id)
+            
+            # Generate new tokens
+            new_refresh = RefreshToken.for_user(user)
+            
+            # Prepare the response
+            response_data = {
+                'access': str(new_refresh.access_token),
+                'refresh': str(new_refresh),
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    # Add any other user fields you want to include
+                }
+            }
+            
+            return Response(response_data)
+        except Exception as e:
+            # Fall back to the default behavior if something goes wrong
+            return super().post(request, *args, **kwargs)

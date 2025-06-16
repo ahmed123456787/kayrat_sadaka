@@ -12,6 +12,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 
 from .services.email import send_password_reset_email
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 
 class MosqueStuffViewSet(GenericViewSet,CreateModelMixin,
@@ -91,3 +92,36 @@ class PasswordSetView(CreateModelMixin, GenericViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({'error': 'Invalid token or user ID'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        
+        if response.status_code == status.HTTP_200_OK:
+            # Get the user from the validated token data
+            user = self.get_user(request.data)
+            
+            # Add user information to the response
+            response.data.update({
+                'user': {
+                    'id': user.id,
+                    'last_name': user.last_name,
+                    'first_name': user.first_name,
+                    'email': user.email,
+                    # Add any other user fields you want to include
+                }
+            })
+        
+        return response
+    
+    def get_user(self, data):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        
+        username_field = User.USERNAME_FIELD
+        username = data.get(username_field)
+        
+        if username:
+            return User.objects.get(**{username_field: username})
+        return None

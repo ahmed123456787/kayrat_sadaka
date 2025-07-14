@@ -60,7 +60,15 @@ class DistributionSerializer(ModelSerializer):
 
 
 
+class DocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document 
+        fields = ['id', 'file', 'uploaded_at']
+        read_only_fields = ['id', 'uploaded_at']
+
+
 class NeedySerializer (ModelSerializer):
+    documents = DocumentSerializer(many=True, read_only=True)
     class Meta:
         model = Needy
         exclude = ['responsible']
@@ -78,14 +86,13 @@ class NeedySerializer (ModelSerializer):
     
 
 
-class DocumentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Document 
-        fields = ['id', 'file', 'uploaded_at']
-        read_only_fields = ['id', 'uploaded_at']
 
 class UploadNeedyDocumentSerializer(serializers.ModelSerializer):
-    documents = DocumentSerializer(many=True, required=False)
+    documents = serializers.ListField(
+        child=serializers.FileField(max_length=100000, allow_empty_file=False, use_url=False),
+        write_only=True,
+        required=False
+    )
 
     class Meta:
         model = Needy
@@ -95,18 +102,18 @@ class UploadNeedyDocumentSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         print("Inside custom update method")
         
-        # Extract documents data if provided
-        documents_data = validated_data.pop('documents', [])
-        print("Documents data:", documents_data)
+        # Extract files data if provided
+        files = validated_data.pop('documents', [])
+        print("Files data:", files)
 
         # Update the Needy instance
         instance = super().update(instance, validated_data)
         print("Needy instance updated:", instance)
 
         # Save new documents if provided
-        for document_data in documents_data:
-            print("Processing document data:", document_data)
-            document = Document.objects.create(**document_data)
+        for file in files:
+            print("Processing file:", file)
+            document = Document.objects.create(file=file)
             instance.documents.add(document)
 
         instance.save()

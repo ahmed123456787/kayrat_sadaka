@@ -95,13 +95,13 @@ class Needy(models.Model):
     documents = models.ManyToManyField(Document, blank=True, related_name='needies')
     responsible = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='needy')
     birth_date = models.DateField()
-    number_ccp = models.CharField(max_length=20,default="")
+    number_ccp = models.CharField(max_length=20,default="",null=True,blank=True)
     marial_status = models.CharField(max_length=255,choices=CHOICES,default='single')
     number_of_children = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     sex = models.CharField(max_length=10, choices=SEX_CHOICES)
     social_status = models.CharField(max_length=255, choices=SOCIAL_STATUS_CHOICES, default='unemployed')
-    distributions = models.ManyToManyField('Distribution', related_name='enrolled_needy', blank=True,null=True)     
+    distributions = models.ManyToManyField('Distribution', related_name='enrolled_needy')     
 
 
     class Meta:

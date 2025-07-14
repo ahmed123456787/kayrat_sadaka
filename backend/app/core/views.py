@@ -1,7 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.generics import ListCreateAPIView,UpdateAPIView
+from rest_framework.generics import ListCreateAPIView,UpdateAPIView,DestroyAPIView
 from .serializers import * 
 from rest_framework.response import Response
 from rest_framework.status import *
@@ -15,6 +15,7 @@ from rest_framework import status
 from django.db.models import Count, Sum
 from django.http import JsonResponse
 from django.utils.timezone import now
+from rest_framework.parsers import MultiPartParser, FormParser
 
 
 class RessourceTypeView (ModelViewSet):
@@ -73,7 +74,7 @@ class DistributionView (ModelViewSet):
 
 
 
-class NeedyView(ListCreateAPIView):
+class NeedyView(ListCreateAPIView,DestroyAPIView):
 
     serializer_class = NeedySerializer
     authentication_classes = [JWTAuthentication]  
@@ -97,10 +98,34 @@ class NeedyView(ListCreateAPIView):
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.responsible != request.user:
+            return Response({"detail": "You do not have permission to delete this needy."}, status=HTTP_403_FORBIDDEN)
+        instance.delete()
+        return Response({ "detail": "Needy deleted successfully."},status=HTTP_204_NO_CONTENT)
 
 
+@extend_schema(
+    request={
+        'multipart/form-data': {
+            'type': 'object',
+            'properties': {
+                'documents': {
+                    'type': 'array',
+                    'items': {
+                        'type': 'string',
+                        'format': 'binary'
+                    }
+                }
+            }
+        }
+    },
+    responses={200: UploadNeedyDocumentSerializer}
+)
 class UploadNeedyDocumentView(UpdateAPIView):
     serializer_class = UploadNeedyDocumentSerializer
+    parser_classes = [MultiPartParser, FormParser] 
 
     def get_queryset(self):
         """Filter the needys that belong to the responsible user"""
@@ -116,13 +141,20 @@ class UploadNeedyDocumentView(UpdateAPIView):
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
-        print("Instance before update:", instance)
-        print("Request data:", request.data)
+
+        # getting the files from the request
         print("Request files:", request.FILES)
 
-        # Combine request.data and request.FILES for file uploads
-        data = request.data.copy()
-        data.update(request.FILES)
+        # Handle multiple files
+        files_data = []
+        if 'documents' in request.FILES:
+            files = request.FILES.getlist('documents')
+            for file in files:
+                files_data.append(file)
+        
+        data = {'documents': files_data} if files_data else {}
+        
+        print("Processed data:", data)
 
         serializer = self.get_serializer(instance, data=data, partial=True)
         if serializer.is_valid():
@@ -138,6 +170,8 @@ class UploadNeedyDocumentView(UpdateAPIView):
 class NumberOfResponsiblesView(APIView):
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
+    serializer_class = NumberOfResponsiblesView
+
 
     def get(self, request, *args, **kwargs):
         mosque = request.user.mosque  # Assuming the user has a foreign key to Mosque

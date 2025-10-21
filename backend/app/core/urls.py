@@ -9,6 +9,7 @@ router.register('ressources', RessourceViewSet, basename='ressources')
 
 urlpatterns = [
     path('needy/<int:pk>/', UploadNeedyDocumentView.as_view(), name='upload_needy_document'),
+    path('needy/<int:pk>/delete/', DestroyNeedyView.as_view(), name='delete_needy'),
     path('needy/', NeedyView.as_view(), name='needy'),
     path('number-of-responsibles/', NumberOfResponsiblesView.as_view(), name='number_of_responsibles'),
     path('number-of-needy/', NumberOfNeedyView.as_view(), name='number_of_needy'),

@@ -44,11 +44,20 @@ class UserAdmin(BaseUserAdmin):
     )
 
 
+class DistributionAdmin(admin.ModelAdmin):
+    list_display = ['id', 'responsible', 'start_time', 'finish_time']
+    list_filter = ['start_time', 'finish_time', 'responsible__mosque']
+    search_fields = ['responsible__first_name', 'responsible__last_name', 'responsible__email']
+    ordering = ['-start_time']
+
+
+
+
 admin.site.register(CustomUser, UserAdmin)
 admin.site.register(Needy)
 admin.site.register(Mosque)
 admin.site.register(RessourceType)
 admin.site.register(Ressource)
-admin.site.register(Distribution)
+admin.site.register(Distribution, DistributionAdmin)
 admin.site.register(Notification)
 admin.site.register(Document)

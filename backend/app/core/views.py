@@ -74,7 +74,7 @@ class DistributionView (ModelViewSet):
 
 
 
-class NeedyView(ListCreateAPIView,DestroyAPIView):
+class NeedyView(ListCreateAPIView):
 
     serializer_class = NeedySerializer
     authentication_classes = [JWTAuthentication]  
@@ -92,18 +92,12 @@ class NeedyView(ListCreateAPIView,DestroyAPIView):
         serializer = NeedySerializer(data=request.data)
         if serializer.is_valid():
             responsible = self.request.user
-            serializer.save(responsible=responsible)
-            return Response(serializer.validated_data, status=HTTP_201_CREATED)
+            needy_instance = serializer.save(responsible=responsible)
+            # Return the serialized data of the created instance
+            return Response(NeedySerializer(needy_instance).data, status=HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
-
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance.responsible != request.user:
-            return Response({"detail": "You do not have permission to delete this needy."}, status=HTTP_403_FORBIDDEN)
-        instance.delete()
-        return Response({ "detail": "Needy deleted successfully."},status=HTTP_204_NO_CONTENT)
 
 
 @extend_schema(
@@ -165,6 +159,20 @@ class UploadNeedyDocumentView(UpdateAPIView):
             print("Errors:", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class DestroyNeedyView(DestroyAPIView):
+
+    serializer_class = NeedySerializer
+    queryset = Needy.objects.all()
+    authentication_classes = [JWTAuthentication]
+
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance.responsible != request.user:
+            return Response({"detail": "You do not have permission to delete this needy."}, status=HTTP_403_FORBIDDEN)
+        instance.delete()
+        return Response({ "detail": "Needy deleted successfully."},status=HTTP_204_NO_CONTENT)
 
 
 class NumberOfResponsiblesView(APIView):

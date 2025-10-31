@@ -100,7 +100,7 @@ class Needy(models.Model):
     number_of_children = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     sex = models.CharField(max_length=10, choices=SEX_CHOICES)
-    social_status = models.CharField(max_length=255, choices=SOCIAL_STATUS_CHOICES, default='unemployed')
+    social_status = models.CharField(max_length=255, default='unemployed')
     distributions = models.ManyToManyField('Distribution', related_name='enrolled_needy',null=True,blank=True)     
 
 
